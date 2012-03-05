@@ -1,0 +1,3 @@
+== ActsAsTaggable
+
+Simple tagging.
