@@ -1,6 +1,8 @@
 class Tag < ActiveRecord::Base
-  validates_presence_of :name
+  has_many :taggings
+  default_scope :order => 'name ASC'
   
+  validates_presence_of :name
   before_save :sanitize_name
   
   def self.sanitize_name(name)
