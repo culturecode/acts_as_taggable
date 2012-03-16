@@ -44,7 +44,7 @@ module ActsAsTaggable
     end
     
     def tag_names
-      tags.pluck(:name)
+      tags.collect(&:name) # don't use pluck since we want to use the cached association
     end
   end
 end
