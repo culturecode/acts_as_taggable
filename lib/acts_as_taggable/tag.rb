@@ -6,7 +6,7 @@ class Tag < ActiveRecord::Base
   before_save :sanitize_name
   
   def self.sanitize_name(name)
-    name.strip.squeeze(' ').downcase
+    name.to_s.strip.squeeze(' ').downcase
   end
   
   def to_s
