@@ -9,6 +9,10 @@ class Tag < ActiveRecord::Base
     name.strip.squeeze(' ').downcase
   end
   
+  def to_s
+    self.name
+  end
+
   private
   
   def sanitize_name
