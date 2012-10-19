@@ -3,10 +3,6 @@ module ActsAsTaggable
     def acts_as_taggable(options = {})
       has_many :taggings, :as => :taggable
       has_many :tags, :through => :taggings
-      
-      # TODO
-      # scope :tagged_with_all, lambda {|*args| }
-      scope :tagged_with_any, lambda {|*args| joins(:tags).where(:tags => {:name => args.collect{|tag_name| Tag.sanitize_name(tag_name) }} )}
 
       # Delegate the relation methods to the relation
       class << self
@@ -20,6 +16,13 @@ module ActsAsTaggable
   end
 
   module ClassMethods
+    # TODO: tagged_with_all
+    
+    def tagged_with_any(*args)
+      args.flatten! # Allow an array of tags to be passed in
+
+      joins(:tags).where(:tags => {:name => args.collect {|tag_name| Tag.sanitize_name(tag_name) } }).uniq
+    end
   end
 
   module ActiveRelationMethods
