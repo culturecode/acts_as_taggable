@@ -27,7 +27,9 @@ module ActsAsTaggable
 
   module ActiveRelationMethods
     def tags
-      scoping { Tag.select("tags.id, tags.name, COUNT(*) AS count").joins(:taggings).where(:taggings => {:taggable_type => @klass.name}).group('tags.id') }
+      scoping do
+        Tag.joins(:taggings).where("taggable_type = ? AND taggable_id IN (#{@klass.select(:id).to_sql})", @klass.name).group('tags.id').select("tags.*, COUNT(*) AS count")
+      end
     end
   end
   
