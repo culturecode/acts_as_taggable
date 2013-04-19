@@ -41,7 +41,7 @@ module ActsAsTaggable
     end
 
     def tags_list=(tag_string)
-      self.tags = tag_string.split(TAG_DELIMITER).collect{|tag_name| Tag.find_or_create_by_name(Tag.sanitize_name(tag_name)) }
+      self.tags = tag_string.to_s.split(TAG_DELIMITER).collect{|tag_name| Tag.find_or_create_by_name(Tag.sanitize_name(tag_name)) }
     end
     
     def tags_list
