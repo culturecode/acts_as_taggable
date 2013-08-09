@@ -5,5 +5,5 @@ Gem::Specification.new do |s|
   s.homepage = 'http://github.com/culturecode/acts_as_taggable'
   s.summary = 'Simple record tagging'
   s.authors = ['Nicholas Jakobsen', 'Ryan Wallace']
-  s.add_dependency('rails', '~> 4.0.0')
+  s.add_dependency('rails', '~> 4.0')
 end
