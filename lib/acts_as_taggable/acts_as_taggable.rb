@@ -4,14 +4,8 @@ module ActsAsTaggable
       has_many :taggings, :as => :taggable
       has_many :tags, :through => :taggings
 
-      # Delegate the relation methods to the relation
-      class << self
-        delegate :tags, :to => :scoped
-      end
-
       extend ActsAsTaggable::ClassMethods
       include ActsAsTaggable::InstanceMethods
-      ActiveRecord::Relation.send :include, ActsAsTaggable::ActiveRelationMethods
     end    
   end
 
@@ -23,16 +17,13 @@ module ActsAsTaggable
 
       joins(:tags).where(:tags => {:name => args.collect {|tag_name| Tag.sanitize_name(tag_name) } }).uniq
     end
-  end
 
-  module ActiveRelationMethods
+    # Make it possible to ask for tags on a scoped Taggable relation. e.g. Users.online.tags
     def tags
-      scoping do
-        Tag.joins(:taggings).where("taggable_type = ? AND taggable_id IN (#{@klass.select(:id).to_sql})", @klass.name).group('tags.id').select("tags.*, COUNT(*) AS count")
-      end
+      Tag.joins(:taggings).where(:taggings => {:taggable_type => self, :taggable_id => all}).group('tags.id').select("tags.*, COUNT(*) AS count")
     end
   end
-  
+
   module InstanceMethods
     TAG_DELIMITER = ','
     
@@ -41,7 +32,7 @@ module ActsAsTaggable
     end
 
     def tags_list=(tag_string)
-      self.tags = tag_string.to_s.split(TAG_DELIMITER).collect{|tag_name| Tag.find_or_create_by_name(Tag.sanitize_name(tag_name)) }
+      self.tags = tag_string.to_s.split(TAG_DELIMITER).collect{|tag_name| Tag.find_or_create_by!(:name => Tag.sanitize_name(tag_name)) }
     end
     
     def tags_list

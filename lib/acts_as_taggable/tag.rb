@@ -1,6 +1,6 @@
 class Tag < ActiveRecord::Base
   has_many :taggings
-  default_scope :order => 'name ASC'
+  default_scope lambda { order(:name) }
   
   validates_presence_of :name
   before_save :sanitize_name
