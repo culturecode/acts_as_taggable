@@ -1,5 +1,5 @@
 Gem::Specification.new do |s|
-  s.name = 'acts_as_taggable'
+  s.name = 'culturecode-acts_as_taggable'
   s.version = '0.2.0'
   s.email = 'contact@culturecode.ca'
   s.homepage = 'http://github.com/culturecode/acts_as_taggable'
