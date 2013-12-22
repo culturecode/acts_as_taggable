@@ -1,12 +1,12 @@
 module ActsAsTaggable
   module ActMethod #:nodoc:
     def acts_as_taggable(options = {})
-      has_many :taggings, :as => :taggable
+      has_many :taggings, :as => :taggable, :after_remove => :delete_tag_if_necessary
       has_many :tags, :through => :taggings
 
       class_attribute :acts_as_taggable_options
       self.acts_as_taggable_options = options
-      self.acts_as_taggable_options.reverse_merge! :delimiter => ',', :downcase => true
+      self.acts_as_taggable_options.reverse_merge! :delimiter => ',', :downcase => true, :remove_tag_if_empty => true
       self.acts_as_taggable_options.reverse_merge! :output_delimiter => acts_as_taggable_options[:delimiter]
 
       extend ActsAsTaggable::ClassMethods
@@ -78,6 +78,12 @@ module ActsAsTaggable
 
     def tag_names
       tags.collect(&:name) # don't use pluck since we want to use the cached association
+    end
+
+    private
+
+    def delete_tag_if_necessary
+      Tag.where(:id => tag_id).delete_all if acts_as_taggable_options[:remove_tag_if_empty] && tag.taggings.count == 0
     end
   end
 end
