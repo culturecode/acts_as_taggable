@@ -1,5 +1,5 @@
 class Tag < ActiveRecord::Base
-  has_many :taggings
+  has_many :taggings, :dependent => :destroy
   default_scope lambda { order(:name) }
 
   validates_presence_of :name
