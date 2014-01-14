@@ -69,7 +69,11 @@ module ActsAsTaggable
     end
 
     def tag_string=(tag_string)
-      self.tags = tag_string.to_s.split(acts_as_taggable_options[:delimiter]).collect{|tag_name| Tag.find_or_create_by!(:name => Tag.sanitize_name(tag_name, :downcase => acts_as_taggable_options[:downcase])) }
+      self.tags = tag_string.to_s.split(acts_as_taggable_options[:delimiter]).collect do |name|
+        name = Tag.sanitize_name(name)
+        name.downcase! if acts_as_taggable_options[:downcase]
+        Tag.find_or_create_by!(:name => name)
+      end
     end
 
     def tag_string

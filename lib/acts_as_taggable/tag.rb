@@ -5,10 +5,8 @@ class Tag < ActiveRecord::Base
   validates_presence_of :name
   before_save :sanitize_name
 
-  def self.sanitize_name(name, options = {})
-    name = name.to_s.squish
-    name = name.downcase if options[:downcase]
-    return name
+  def self.sanitize_name(name)
+    name.to_s.squish
   end
 
   def to_s
