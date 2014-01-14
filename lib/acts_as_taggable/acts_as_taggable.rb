@@ -17,7 +17,7 @@ module ActsAsTaggable
   module ClassMethods
 
     def tagged_with_any(*tags)
-      p tags = find_tags(tags)
+      tags = find_tags(tags)
       return all if tags.empty?
 
       table_alias = "alias_#{tags.hash.abs}"
