@@ -68,11 +68,23 @@ module ActsAsTaggable
       true
     end
 
+    def tag_with(*tag_names)
+      tag_names.flatten.select(&:present?).each do |tag_name|
+        tag = HelperMethods.create_tag(tag_name, acts_as_taggable_options)
+        tags << tag unless tags.exists?(tag)
+      end
+    end
+
+    def untag_with(*tag_names)
+      tag_names.flatten.select(&:present?).each do |tag_name|
+        tag = HelperMethods.find_tag(tag_name, acts_as_taggable_options)
+        tags.delete(tag) if tag
+      end
+    end
+
     def tag_string=(tag_string)
-      self.tags = tag_string.to_s.split(acts_as_taggable_options[:delimiter]).collect do |name|
-        name = Tag.sanitize_name(name)
-        name.downcase! if acts_as_taggable_options[:downcase]
-        Tag.find_or_create_by!(:name => name)
+      self.tags = tag_string.to_s.split(acts_as_taggable_options[:delimiter]).collect do |tag_name|
+        HelperMethods.create_tag(tag_name, acts_as_taggable_options)
       end
     end
 
@@ -88,6 +100,23 @@ module ActsAsTaggable
 
     def delete_tag_if_necessary
       Tag.where(:id => tag_id).delete_all if acts_as_taggable_options[:remove_tag_if_empty] && tag.taggings.count == 0
+    end
+
+  end
+
+  module HelperMethods
+    def self.sanitize_name(tag_name, options)
+      tag_name = Tag.sanitize_name(tag_name)
+      tag_name.downcase! if options[:downcase]
+      return tag_name
+    end
+
+    def self.find_tag(tag_name, options)
+      Tag.find_by_name(sanitize_name(tag_name, options))
+    end
+
+    def self.create_tag(tag_name, options)
+      Tag.find_or_create_by!(:name => sanitize_name(tag_name, options))
     end
   end
 end
