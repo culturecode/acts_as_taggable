@@ -55,7 +55,7 @@ module ActsAsTaggable
     end
 
     def create_tag(tag_name)
-      find_tags(tag_name).first || tags.create!(:name => sanitize_tag_name(tag_name))
+      find_tags(tag_name).first || tags.create!(:name => tag_name)
     end
 
     # Given an unsanitized string or list of tags, Returns a list of tags
@@ -64,7 +64,7 @@ module ActsAsTaggable
       when Tag
         [input]
       when String
-        tags.where(:name => input.split(acts_as_taggable_options[:delimiter]).collect{|tag_name| sanitize_tag_name(tag_name)}).to_a
+        tags.where(:name => input.split(acts_as_taggable_options[:delimiter]).collect{|tag_name| tag_name}).to_a
       when Array
         input.flat_map {|tag| find_tags(tag)}.select(&:present?).uniq
       when ActiveRecord::Relation
@@ -72,14 +72,6 @@ module ActsAsTaggable
       else
         []
       end
-    end
-
-    private
-
-    def sanitize_tag_name(tag_name)
-      tag_name = Tag.sanitize_name(tag_name)
-      tag_name.downcase! if acts_as_taggable_options[:downcase]
-      return tag_name
     end
   end
 

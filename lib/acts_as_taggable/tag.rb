@@ -5,17 +5,19 @@ class Tag < ActiveRecord::Base
   validates_presence_of :name
   before_save :sanitize_name
 
-  def self.sanitize_name(name)
-    name.to_s.squish
-  end
-
   def to_s
     self.name
+  end
+
+  def taggable_class
+    self.tag_type.constantize
   end
 
   private
 
   def sanitize_name
-    self.name = self.class.sanitize_name(self.name)
+    name = self.name.to_s.squish
+    name.downcase! if taggable_class.acts_as_taggable_options[:downcase]
+    self.name = name
   end
 end
