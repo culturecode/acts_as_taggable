@@ -38,28 +38,48 @@ module ActsAsTaggable
     end
 
     # Make it possible to ask for tags on a scoped Taggable relation. e.g. Users.online.tags
+    def applied_tags
+      joins(:tags).group('tags.id').select("tags.*, COUNT(*) AS count")
+    end
+
+    def applied_tag_names
+      applied_tags.collect(&:name)
+    end
+
     def tags
-      all.joins(:tags).group('tags.id').select("tags.*, COUNT(*) AS count")
+      Tag.where(:tag_type => name)
     end
 
     def tag_names
       tags.collect(&:name)
     end
 
-    private
+    def create_tag(tag_name)
+      find_tags(tag_name).first || tags.create!(:name => sanitize_tag_name(tag_name))
+    end
 
     # Given an unsanitized string or list of tags, Returns a list of tags
-    def find_tags(tags)
-      case tags
+    def find_tags(input)
+      case input
+      when Tag
+        [input]
       when String
-        Tag.where(:name => tags.split(acts_as_taggable_options[:delimiter]))
+        tags.where(:name => input.split(acts_as_taggable_options[:delimiter]).collect{|tag_name| sanitize_tag_name(tag_name)}).to_a
       when Array
-        tags.flat_map {|tag| find_tags(tag)}.select(&:present?).uniq
+        input.flat_map {|tag| find_tags(tag)}.select(&:present?).uniq
       when ActiveRecord::Relation
-        tags.uniq
+        input.uniq.to_a
       else
         []
       end
+    end
+
+    private
+
+    def sanitize_tag_name(tag_name)
+      tag_name = Tag.sanitize_name(tag_name)
+      tag_name.downcase! if acts_as_taggable_options[:downcase]
+      return tag_name
     end
   end
 
@@ -70,21 +90,21 @@ module ActsAsTaggable
 
     def tag_with(*tag_names)
       tag_names.flatten.select(&:present?).each do |tag_name|
-        tag = HelperMethods.create_tag(tag_name, acts_as_taggable_options)
-        tags << tag unless tags.exists?(tag)
+        tag = self.class.create_tag(tag_name)
+        tags << tag unless tags.to_a.include?(tag)
       end
     end
 
     def untag_with(*tag_names)
       tag_names.flatten.select(&:present?).each do |tag_name|
-        tag = HelperMethods.find_tag(tag_name, acts_as_taggable_options)
-        tags.delete(tag) if tag
+        tag = self.class.find_tags(tag_name).first
+        taggings.where(:tag_id => tag.id).destroy_all if tag
       end
     end
 
     def tag_string=(tag_string)
       self.tags = tag_string.to_s.split(acts_as_taggable_options[:delimiter]).collect do |tag_name|
-        HelperMethods.create_tag(tag_name, acts_as_taggable_options)
+        self.class.create_tag(tag_name)
       end
     end
 
@@ -99,24 +119,7 @@ module ActsAsTaggable
     private
 
     def delete_tag_if_necessary
-      Tag.where(:id => tag_id).delete_all if acts_as_taggable_options[:remove_tag_if_empty] && tag.taggings.count == 0
-    end
-
-  end
-
-  module HelperMethods
-    def self.sanitize_name(tag_name, options)
-      tag_name = Tag.sanitize_name(tag_name)
-      tag_name.downcase! if options[:downcase]
-      return tag_name
-    end
-
-    def self.find_tag(tag_name, options)
-      Tag.find_by_name(sanitize_name(tag_name, options))
-    end
-
-    def self.create_tag(tag_name, options)
-      Tag.find_or_create_by!(:name => sanitize_name(tag_name, options))
+      self.class.tags.where(:id => tag_id).destroy_all if acts_as_taggable_options[:remove_tag_if_empty] && tag.taggings.count == 0
     end
   end
 end
