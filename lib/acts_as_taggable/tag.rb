@@ -13,6 +13,11 @@ class Tag < ActiveRecord::Base
     self.tag_type.constantize
   end
 
+  # Returns a cache key that is unique based on the last time the tags were updated or applied
+  def taggings_cache_key
+    [name, taggings.maximum(:id), taggings.count]
+  end
+
   private
 
   def sanitize_name
