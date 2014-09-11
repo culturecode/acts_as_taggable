@@ -110,8 +110,8 @@ module ActsAsTaggable
 
     private
 
-    def delete_tag_if_necessary
-      self.class.tags.where(:id => tag_id).destroy_all if acts_as_taggable_options[:remove_tag_if_empty] && tag.taggings.count == 0
+    def delete_tag_if_necessary(tagging)
+      self.class.tags.where(:id => tagging.tag_id).destroy_all if acts_as_taggable_options[:remove_tag_if_empty] && tagging.tag.taggings.count == 0
     end
   end
 end
