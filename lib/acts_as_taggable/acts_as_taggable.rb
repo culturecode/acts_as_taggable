@@ -1,7 +1,7 @@
 module ActsAsTaggable
   module ActMethod #:nodoc:
     def acts_as_taggable(options = {})
-      has_many :taggings, :as => :taggable, :after_remove => :delete_tag_if_necessary, :dependent => :destroy
+      has_many :taggings, -> { order('taggings.id') }, :as => :taggable, :after_remove => :delete_tag_if_necessary, :dependent => :destroy
       has_many :tags, :through => :taggings
 
       class_attribute :acts_as_taggable_options
