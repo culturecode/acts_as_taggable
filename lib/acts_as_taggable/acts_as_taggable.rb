@@ -21,10 +21,9 @@ module ActsAsTaggable
       return all if tags.empty?
 
       table_alias = "alias_#{tags.hash.abs}"
-      scope = all.select "#{table_name}.*"
+      scope = all.uniq.select "#{table_name}.*"
       scope = scope.joins "JOIN taggings AS #{table_alias} ON #{table_alias}.taggable_id = #{table_name}.id"
       scope = scope.where "#{table_alias}.tag_id" => tags
-      scope = scope.group "#{table_name}.#{primary_key}"
 
       return scope
     end
