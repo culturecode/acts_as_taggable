@@ -10,7 +10,7 @@ class Tag < ActiveRecord::Base
   end
 
   def taggable_class
-    self.tag_type.constantize
+    self.taggable_type.constantize
   end
 
   # Returns a cache key that is unique based on the last time the tags were updated or applied

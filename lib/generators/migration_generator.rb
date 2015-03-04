@@ -5,7 +5,7 @@ class ActsAsTaggableMigrationGenerator < Rails::Generators::Base
         def change
           create_table :tags do |t|
             t.string :name
-            t.string :tag_type
+            t.string :taggable_type
           end
 
           create_table :taggings do |t|
@@ -13,7 +13,7 @@ class ActsAsTaggableMigrationGenerator < Rails::Generators::Base
             t.belongs_to :taggable, :polymorphic => true
           end
 
-          add_index :tags, [:name, :tag_type], :unique => true
+          add_index :tags, [:name, :taggable_type], :unique => true
           add_index :taggings, [:taggable_type, :taggable_id]
           add_index :taggings, :tag_id
         end
