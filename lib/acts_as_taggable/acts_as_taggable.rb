@@ -18,7 +18,7 @@ module ActsAsTaggable
 
     def tagged_with_any(*tags)
       tags = find_tags(tags)
-      return all if tags.empty?
+      return none if tags.empty?
 
       table_alias = "alias_#{tags.hash.abs}"
       scope = all.uniq.select "#{table_name}.*"
@@ -30,6 +30,8 @@ module ActsAsTaggable
 
     def tagged_with_all(*tags)
       tags = find_tags(tags)
+      return none if tags.empty?
+
       tags.inject(all.uniq) do |scope, tag|
         scope = scope.joins "LEFT OUTER JOIN taggings AS alias_#{tag.id} ON alias_#{tag.id}.taggable_id = #{table_name}.id"
         scope = scope.where "alias_#{tag.id}.tag_id" => tag
