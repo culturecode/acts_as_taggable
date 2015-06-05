@@ -1,4 +1,4 @@
-== ActsAsTaggable
+# ActsAsTaggable
 
 Simple tagging.
 

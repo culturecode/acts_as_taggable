@@ -2,7 +2,7 @@ class Tag < ActiveRecord::Base
   has_many :taggings, :dependent => :destroy
   default_scope lambda { order(:name) }
 
-  validates_presence_of :name
+  validates_presence_of :name, :taggable_type
   before_save :sanitize_name
 
   def to_s

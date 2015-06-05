@@ -38,13 +38,13 @@ module ActsAsTaggable
       end
     end
 
-    # Make it possible to ask for tags on a scoped Taggable relation. e.g. Users.online.tags
+    # Make it possible to ask for tags on a scoped Taggable relation. e.g. Users.online.applied_tags
     def applied_tags
-      joins(:tags).group('tags.id').select("tags.*, COUNT(*) AS count")
+      Tag.select("tags.*, COUNT(*) AS count").joins(:taggings).where(:taggable_type => self.name, :taggings => {:taggable_id => all}).group('tags.id')
     end
 
     def applied_tag_names
-      applied_tags.collect(&:name)
+      applied_tags.pluck(:name)
     end
 
     def tags
@@ -52,7 +52,7 @@ module ActsAsTaggable
     end
 
     def tag_names
-      tags.collect(&:name)
+      tags.pluck(:name)
     end
 
     def create_tag(tag_name)
@@ -65,7 +65,7 @@ module ActsAsTaggable
       when Tag
         [input]
       when String
-        tags.where(:name => input.split(acts_as_taggable_options[:delimiter]).collect{|tag_name| tag_name}).to_a
+        tags.where(:name => input.split(acts_as_taggable_options[:delimiter]).collect {|tag_name| tag_name.strip}).to_a
       when Array
         input.flat_map {|tag| find_tags(tag)}.select(&:present?).uniq
       when ActiveRecord::Relation
