@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    acts_as_taggable (0.4.1)
+    acts_as_taggable (0.4.2)
       activerecord (~> 4.2.0)
 
 GEM

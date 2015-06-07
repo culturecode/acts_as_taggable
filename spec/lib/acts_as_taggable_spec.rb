@@ -4,7 +4,7 @@ describe 'acts_as_taggable' do
   let(:klass) { new_dummy_class { acts_as_taggable } }
 
   before do
-    Tag.destroy_all # Because we're using sqlite3 and it doesn't support transactional specs (afaik)
+    ActsAsTaggable::Tag.destroy_all # Because we're using sqlite3 and it doesn't support transactional specs (afaik)
   end
 
 
@@ -19,7 +19,7 @@ describe 'acts_as_taggable' do
       tag = klass.create_tag('red')
 
       expect(tag.name).to eq('red')
-      expect(tag).to be_an_instance_of(Tag)
+      expect(tag).to be_an_instance_of(ActsAsTaggable::Tag)
     end
   end
 
@@ -45,6 +45,10 @@ describe 'acts_as_taggable' do
 
     it 'accepts a comma delimited string of tags' do
       expect(klass.find_tags("#{red.name}, #{green.name}")).to contain_exactly(red, green)
+    end
+
+    it 'accepts an ActiveRecord::Relation of tags' do
+      expect(klass.find_tags(ActsAsTaggable::Tag.where(:name => red.name))).to contain_exactly(red)
     end
   end
 
@@ -88,7 +92,6 @@ describe 'acts_as_taggable' do
   describe '::applied_tags' do
     let(:record) { klass.create! }
     let(:red) { klass.create_tag('red') }
-    # let(:green) { klass.create_tag('green') }
 
     it 'returns only tags that have been applied to records' do
       record.tags << red

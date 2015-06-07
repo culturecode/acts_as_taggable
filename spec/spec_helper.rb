@@ -53,5 +53,5 @@ def new_dummy_class(*column_names, &block)
 end
 
 def create_tag(options = {})
-  Tag.create()
+  ActsAsTaggable::Tag.create(options)
 end
