@@ -138,24 +138,24 @@ module ActsAsTaggable
   end
 
   module HelperMethods
-    def self.scope_class_methods(context, tag_type)
-      scope_tag_method(context, tag_type, :create_tag, "create_#{tag_type}_tag")
-      scope_tag_method(context, tag_type, :find_tags, "find_#{tag_type}_tags")
-      scope_tag_method(context, tag_type, :tagged_with_any, "tagged_with_any_#{tag_type}")
-      scope_tag_method(context, tag_type, :tagged_with_all, "tagged_with_all_#{tag_type.to_s.pluralize}")
-      scope_tag_method(context, tag_type, :tags, "#{tag_type}_tags")
-      scope_tag_method(context, tag_type, :tag_names, "#{tag_type}_tag_names")
-      scope_tag_method(context, tag_type, :applied_tags, "applied_#{tag_type}_tags")
-      scope_tag_method(context, tag_type, :applied_tag_names, "applied_#{tag_type}_tag_names")
+    def self.scope_class_methods(metaclass, tag_type)
+      scope_tag_method(metaclass, tag_type, :create_tag, "create_#{tag_type}_tag")
+      scope_tag_method(metaclass, tag_type, :find_tags, "find_#{tag_type}_tags")
+      scope_tag_method(metaclass, tag_type, :tagged_with_any, "tagged_with_any_#{tag_type}")
+      scope_tag_method(metaclass, tag_type, :tagged_with_all, "tagged_with_all_#{tag_type.to_s.pluralize}")
+      scope_tag_method(metaclass, tag_type, :tags, "#{tag_type}_tags")
+      scope_tag_method(metaclass, tag_type, :tag_names, "#{tag_type}_tag_names")
+      scope_tag_method(metaclass, tag_type, :applied_tags, "applied_#{tag_type}_tags")
+      scope_tag_method(metaclass, tag_type, :applied_tag_names, "applied_#{tag_type}_tag_names")
     end
 
-    def self.scope_instance_methods(context, tag_type)
-      scope_tag_method(context, tag_type, :tag_names, "#{tag_type}_tag_names")
-      scope_tag_method(context, tag_type, :tag_names=, "#{tag_type}_tag_names=")
-      scope_tag_method(context, tag_type, :tag_string, "#{tag_type}_tag_string")
-      scope_tag_method(context, tag_type, :tag_string=, "#{tag_type}_tag_string=")
-      scope_tag_method(context, tag_type, :tag_with, "tag_with_#{tag_type}")
-      scope_tag_method(context, tag_type, :untag_with, "untag_with_#{tag_type}")
+    def self.scope_instance_methods(klass, tag_type)
+      scope_tag_method(klass, tag_type, :tag_names, "#{tag_type}_tag_names")
+      scope_tag_method(klass, tag_type, :tag_names=, "#{tag_type}_tag_names=")
+      scope_tag_method(klass, tag_type, :tag_string, "#{tag_type}_tag_string")
+      scope_tag_method(klass, tag_type, :tag_string=, "#{tag_type}_tag_string=")
+      scope_tag_method(klass, tag_type, :tag_with, "tag_with_#{tag_type}")
+      scope_tag_method(klass, tag_type, :untag_with, "untag_with_#{tag_type}")
     end
 
     def self.scope_tag_method(context, tag_type, method_name, scoped_method_name)
