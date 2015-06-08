@@ -94,31 +94,29 @@ module ActsAsTaggable
     end
 
     def tag_with(*tag_names)
-      tag_names.flatten.select(&:present?).each do |tag_name|
-        tag = self.class.create_tag(tag_name)
-        tags << tag unless tags.to_a.include?(tag)
-      end
+      self.tag_names = tag_names.flatten
     end
 
     def untag_with(*tag_names)
-      tag_names.flatten.select(&:present?).each do |tag_name|
-        tag = self.class.find_tags(tag_name).first
-        taggings.where(:tag_id => tag.id).destroy_all if tag
-      end
-    end
-
-    def tag_string=(tag_string)
-      self.tags = tag_string.to_s.split(acts_as_taggable_options[:delimiter]).collect do |tag_name|
-        self.class.create_tag(tag_name)
-      end
+      self.tag_names = self.tag_names - self.class.find_tags(tag_names).collect(&:name)
     end
 
     def tag_string
       tag_names.join(acts_as_taggable_options[:output_delimiter] + ' ')
     end
 
+    def tag_string=(tag_string)
+      self.tag_names = tag_string.to_s.split(acts_as_taggable_options[:delimiter])
+    end
+
     def tag_names
       tags.collect(&:name) # don't use pluck since we want to use the cached association
+    end
+
+    def tag_names=(names)
+      self.tags = names.select(&:present?).collect do |tag_name|
+        self.class.create_tag(tag_name)
+      end
     end
 
     private
