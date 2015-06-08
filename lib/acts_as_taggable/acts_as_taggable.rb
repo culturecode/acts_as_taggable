@@ -110,13 +110,11 @@ module ActsAsTaggable
     end
 
     def tag_names
-      tags.collect(&:name) # don't use pluck since we want to use the cached association
+      send(HelperMethods.scoped_association_name).collect(&:name) # don't use pluck since we want to use the cached association
     end
 
     def tag_names=(names)
-      self.tags = names.select(&:present?).collect do |tag_name|
-        self.class.create_tag(tag_name)
-      end
+      send HelperMethods.scoped_association_assignment_name, names.select(&:present?).collect {|tag_name| self.class.create_tag(tag_name) }
     end
 
     private
@@ -174,6 +172,14 @@ module ActsAsTaggable
           tag[attribute].to_s == value.to_s
         end
       end
+    end
+
+    def self.scoped_association_name
+      current_tag_scope ? "#{current_tag_scope['tag_type']}_tags" : "tags"
+    end
+
+    def self.scoped_association_assignment_name
+      current_tag_scope ? "#{current_tag_scope['tag_type']}_tags=" : "tags="
     end
 
     # Returns the current tag scope, e.g. :tag_type => 'material'

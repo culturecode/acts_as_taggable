@@ -69,7 +69,7 @@ describe 'acts_as_taggable' do
   end
 
   describe '#tag_type_tags=' do
-    it 'resets the unscoped tag and taggings associations' do
+    it 'resets the unscoped tags association' do
       record.tags = [red]
       record.material_tags = [metal]
       expect(record.tags).to contain_exactly(red, metal)
@@ -82,6 +82,16 @@ describe 'acts_as_taggable' do
       expect(record.material_taggings.collect(&:tag)).to contain_exactly(metal)
     end
   end
+
+  describe '#tag_type_taggings=' do
+    it 'resets the unscoped taggings association' do
+      record.tags << [red, metal]
+      record.taggings.load
+      record.material_taggings.create!(:tag => wood)
+      expect(record.taggings.collect(&:tag)).to contain_exactly(red, metal, wood)
+    end
+  end
+
 
   describe '#tag_type_tags' do
     it "returns only tags where the tag's tag type matches" do
@@ -102,6 +112,21 @@ describe 'acts_as_taggable' do
     it 'creates tags of the tag type' do
       record.material_tag_names = ['concrete', 'steel']
       expect(record.material_tags.collect(&:name)).to contain_exactly('concrete', 'steel')
+    end
+
+    it 'does not incorrectly set unscoped tag_names' do
+      record.tag_names = ['red']
+      record.material_tag_names = ['concrete', 'steel']
+      expect(record.tag_names).to contain_exactly('red', 'concrete', 'steel')
+    end
+
+    it 'does not incorrectly set other scoped tag_names' do
+      record = new_dummy_class { acts_as_taggable :types => [:material, :colour] }.create
+      record.material_tag_names = ['metal']
+      record.colour_tag_names = ['red']
+
+      expect(record.material_tag_names).to contain_exactly('metal')
+      expect(record.colour_tag_names).to contain_exactly('red')
     end
   end
 end
