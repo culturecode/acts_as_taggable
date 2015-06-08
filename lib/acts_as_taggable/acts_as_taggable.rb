@@ -139,22 +139,23 @@ module ActsAsTaggable
 
   module HelperMethods
     def self.scope_class_methods(context, tag_type)
-      scope_tag_method(context, tag_type, :create_tag, :"create_#{tag_type}_tag")
-      scope_tag_method(context, tag_type, :find_tags, :"find_#{tag_type}_tags")
-      scope_tag_method(context, tag_type, :tagged_with_any, :"tagged_with_any_#{tag_type}")
-      scope_tag_method(context, tag_type, :tagged_with_all, :"tagged_with_all_#{tag_type.to_s.pluralize}")
-      scope_tag_method(context, tag_type, :tags, :"#{tag_type}_tags")
-      scope_tag_method(context, tag_type, :tag_names, :"#{tag_type}_tag_names")
-      scope_tag_method(context, tag_type, :applied_tags, :"applied_#{tag_type}_tags")
-      scope_tag_method(context, tag_type, :applied_tag_names, :"applied_#{tag_type}_tag_names")
+      scope_tag_method(context, tag_type, :create_tag, "create_#{tag_type}_tag")
+      scope_tag_method(context, tag_type, :find_tags, "find_#{tag_type}_tags")
+      scope_tag_method(context, tag_type, :tagged_with_any, "tagged_with_any_#{tag_type}")
+      scope_tag_method(context, tag_type, :tagged_with_all, "tagged_with_all_#{tag_type.to_s.pluralize}")
+      scope_tag_method(context, tag_type, :tags, "#{tag_type}_tags")
+      scope_tag_method(context, tag_type, :tag_names, "#{tag_type}_tag_names")
+      scope_tag_method(context, tag_type, :applied_tags, "applied_#{tag_type}_tags")
+      scope_tag_method(context, tag_type, :applied_tag_names, "applied_#{tag_type}_tag_names")
     end
 
     def self.scope_instance_methods(context, tag_type)
-      scope_tag_method(context, tag_type, :tag_names, :"#{tag_type}_tag_names")
-      scope_tag_method(context, tag_type, :tag_string, :"#{tag_type}_tag_string")
-      scope_tag_method(context, tag_type, :tag_string=, :"#{tag_type}_tag_string=")
-      scope_tag_method(context, tag_type, :tag_with, :"tag_with_#{tag_type}")
-      scope_tag_method(context, tag_type, :untag_with, :"untag_with_#{tag_type}")
+      scope_tag_method(context, tag_type, :tag_names, "#{tag_type}_tag_names")
+      scope_tag_method(context, tag_type, :tag_names=, "#{tag_type}_tag_names=")
+      scope_tag_method(context, tag_type, :tag_string, "#{tag_type}_tag_string")
+      scope_tag_method(context, tag_type, :tag_string=, "#{tag_type}_tag_string=")
+      scope_tag_method(context, tag_type, :tag_with, "tag_with_#{tag_type}")
+      scope_tag_method(context, tag_type, :untag_with, "untag_with_#{tag_type}")
     end
 
     def self.scope_tag_method(context, tag_type, method_name, scoped_method_name)
@@ -165,15 +166,19 @@ module ActsAsTaggable
       end
     end
 
-    # Filters an array of tags by the current tag scope, e.g. :tag_type => 'material'
+    # Filters an array of tags by the current tag scope
     def self.filter_tags_by_current_tag_scope(tags)
-      return tags unless Tag.current_scope
-      current_tag_scope = Tag.current_scope.where_values_hash
+      return tags unless current_tag_scope
       tags.select do |tag|
         current_tag_scope.all? do |attribute, value|
           tag[attribute].to_s == value.to_s
         end
       end
+    end
+
+    # Returns the current tag scope, e.g. :tag_type => 'material'
+    def self.current_tag_scope
+      Tag.current_scope.where_values_hash if Tag.current_scope
     end
   end
 end
