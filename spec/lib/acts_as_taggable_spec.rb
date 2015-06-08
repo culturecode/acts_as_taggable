@@ -106,4 +106,47 @@ describe 'acts_as_taggable' do
       expect(klass.applied_tags).to contain_exactly(red)
     end
   end
+
+  describe '#tag_names=' do
+    let(:record) { klass.create! }
+    let(:red) { klass.create_tag('red') }
+
+    it 'accepts an array of strings and sets the tags tag match' do
+      record.tag_names = ['red', 'green']
+      expect(record.tags.collect(&:name)).to contain_exactly('red', 'green')
+    end
+
+    it 'ignores empty strings' do
+      record.tag_names = ['', 'green']
+      expect(record.tags.collect(&:name)).to contain_exactly('green')
+    end
+
+    it "doesn't add duplicate tags" do
+      record.tags << red
+      record.tag_names = ["red", "red"]
+      expect(record.tags.count).to eq(1)
+    end
+  end
+
+  describe '#tag_with' do
+    let(:record) { klass.create! }
+    let(:red) { klass.create_tag('red') }
+
+    it 'accepts multiple mixed arguments and sets the tags tag match' do
+      record.tag_with(red, 'green')
+      expect(record.tags.collect(&:name)).to contain_exactly('red', 'green')
+    end
+  end
+
+  describe '#tag_with' do
+    let(:record) { klass.create! }
+    let(:red) { klass.create_tag('red') }
+
+    it 'accepts multiple mixed arguments and unsets the given tags' do
+      record.tag_with(red, 'green', 'blue')
+      record.untag_with(red, 'green')
+
+      expect(record.tags.collect(&:name)).to contain_exactly('blue')
+    end
+  end
 end

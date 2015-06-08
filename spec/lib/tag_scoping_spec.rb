@@ -13,7 +13,7 @@ describe 'acts_as_taggable' do
     metal
   end
 
-  describe '::create_tag_type_tags' do
+  describe '::create_tag_type_tag' do
     it 'creates tags of the given tag type' do
       expect(metal.tag_type).to eq('material')
     end
@@ -68,6 +68,14 @@ describe 'acts_as_taggable' do
     end
   end
 
+  describe '#tag_type_tags=' do
+    it 'resets the unscoped tag and taggings associations' do
+      record.tags = [red]
+      record.material_tags = [metal]
+      expect(record.tags).to contain_exactly(red, metal)
+    end
+  end
+
   describe '#tag_type_taggings' do
     it "returns only taggings where the tag's tag type matches" do
       record.tags << [red, metal]
@@ -79,6 +87,21 @@ describe 'acts_as_taggable' do
     it "returns only tags where the tag's tag type matches" do
       record.tags << [red, metal]
       expect(record.material_tags).to contain_exactly(metal)
+    end
+
+    describe '#tag_type_tags' do
+      it 'is reset when the unscoped tags are set' do
+        record.material_tags = [metal]
+        record.tags = [red, wood]
+        expect(record.material_tags).to contain_exactly(wood)
+      end
+    end
+  end
+
+  describe '#tag_type_tag_names=' do
+    it 'creates tags of the tag type' do
+      record.material_tag_names = ['concrete', 'steel']
+      expect(record.material_tags.collect(&:name)).to contain_exactly('concrete', 'steel')
     end
   end
 end
