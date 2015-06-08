@@ -5,6 +5,7 @@ module ActsAsTaggable
       self.acts_as_taggable_options = options
       self.acts_as_taggable_options.reverse_merge! :delimiter => ',', :downcase => true, :remove_tag_if_empty => true
       self.acts_as_taggable_options.reverse_merge! :output_delimiter => acts_as_taggable_options[:delimiter]
+      self.acts_as_taggable_options[:types] = Array(self.acts_as_taggable_options[:types])
 
       has_many :taggings, -> { order("#{Tagging.table_name}.id") }, :as => :taggable, :after_remove => :delete_tag_if_necessary, :dependent => :destroy, :class_name => 'ActsAsTaggable::Tagging'
       has_many :tags, :through => :taggings, :class_name => 'ActsAsTaggable::Tag'
@@ -12,7 +13,7 @@ module ActsAsTaggable
       extend ClassMethods
       include InstanceMethods
 
-      Array(self.acts_as_taggable_options[:types]).each do |tag_type|
+      self.acts_as_taggable_options[:types].each do |tag_type|
         has_many :"#{tag_type}_taggings", -> { joins(:tag).order("#{Tagging.table_name}.id").where(Tag.table_name => {:tag_type => tag_type}) }, :as => :taggable, :after_remove => :delete_tag_if_necessary, :class_name => 'ActsAsTaggable::Tagging'
         has_many :"#{tag_type}_tags", -> { where(:tag_type => tag_type) }, :through => :taggings, :source => :tag, :class_name => 'ActsAsTaggable::Tag'
 
