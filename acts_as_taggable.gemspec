@@ -5,7 +5,7 @@ require "acts_as_taggable/version"
 
 # Describe your gem and declare its dependencies:
 Gem::Specification.new do |s|
-  s.name        = "acts_as_taggable"
+  s.name        = "culturecode-acts_as_taggable"
   s.version     = ActsAsTaggable::VERSION
   s.authors     = ['Nicholas Jakobsen', 'Ryan Wallace']
   s.email       = 'contact@culturecode.ca'
