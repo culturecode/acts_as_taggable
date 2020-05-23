@@ -94,7 +94,7 @@ module ActsAsTaggable
     end
 
     def tag_with(*tag_names)
-      self.tag_names = tag_names.flatten
+      self.tag_names |= tag_names.flatten
     end
 
     def untag_with(*tag_names)
