@@ -71,7 +71,7 @@ module ActsAsTaggable
 
     # Given an unsanitized string or list of tags, Returns a list of tags
     def find_tags(*input)
-      input = input.flatten
+      input = input.flatten.compact
       input = input.first if input.one?
       case input
       when Tag

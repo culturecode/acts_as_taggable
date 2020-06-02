@@ -50,6 +50,10 @@ describe 'acts_as_taggable' do
     it 'accepts an ActiveRecord::Relation of tags' do
       expect(klass.find_tags(ActsAsTaggable::Tag.where(:name => red.name))).to contain_exactly(red)
     end
+
+    it 'returns an empty array if a nil is passed' do
+      expect(klass.find_tags(nil)).to eq([])
+    end
   end
 
   describe '::tagged_with_any' do
