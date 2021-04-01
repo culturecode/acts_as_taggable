@@ -31,7 +31,7 @@ module ActsAsTaggable
       return none if tags.empty?
 
       table_alias = "alias_#{tags.hash.abs}"
-      scope = all.uniq.select "#{table_name}.*"
+      scope = all.distinct.select "#{table_name}.*"
       scope = scope.joins "JOIN #{Tagging.table_name} AS #{table_alias} ON #{table_alias}.taggable_id = #{table_name}.id"
       scope = scope.where "#{table_alias}.tag_id" => tags
 
@@ -42,7 +42,7 @@ module ActsAsTaggable
       tags = find_tags(tags)
       return none if tags.empty?
 
-      tags.inject(all.uniq) do |scope, tag|
+      tags.inject(all.distinct) do |scope, tag|
         scope = scope.joins "LEFT OUTER JOIN #{Tagging.table_name} AS alias_#{tag.id} ON alias_#{tag.id}.taggable_id = #{table_name}.id"
         scope = scope.where "alias_#{tag.id}.tag_id" => tag
       end
@@ -81,7 +81,7 @@ module ActsAsTaggable
       when Array
         input.flat_map {|tag| find_tags(tag)}.select(&:present?).uniq
       when ActiveRecord::Relation
-        input.uniq.to_a
+        input.distinct.to_a
       else
         []
       end
