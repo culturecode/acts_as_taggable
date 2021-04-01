@@ -87,6 +87,7 @@ describe 'acts_as_taggable' do
     it 'resets the unscoped taggings association' do
       record.tags << [red, metal]
       record.taggings.load
+      expect(record.taggings.collect(&:tag)).to contain_exactly(red, metal)
       record.material_taggings.create!(:tag => wood)
       expect(record.taggings.collect(&:tag)).to contain_exactly(red, metal, wood)
     end
