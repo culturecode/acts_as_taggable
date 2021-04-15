@@ -114,7 +114,8 @@ module ActsAsTaggable
     end
 
     def tag_names=(names)
-      send HelperMethods.scoped_association_assignment_name, names.select(&:present?).collect {|tag_name| self.class.create_tag(tag_name) }
+      tag_objects = names.select(&:present?).collect {|tag_name| self.class.create_tag(tag_name) }.uniq
+      send HelperMethods.scoped_association_assignment_name, tag_objects
     end
 
     private
