@@ -1,4 +1,4 @@
-class ActsAsTaggableTable < ActiveRecord::Migration
+class ActsAsTaggableTable < ActiveRecord::Migration[4.2]
   def change
     create_table :acts_as_taggable_tags do |t|
       t.string :name

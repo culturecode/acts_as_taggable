@@ -7,15 +7,15 @@ module ActsAsTaggable
       self.acts_as_taggable_options.reverse_merge! :output_delimiter => acts_as_taggable_options[:delimiter]
       self.acts_as_taggable_options[:types] = Array(self.acts_as_taggable_options[:types])
 
-      has_many :taggings, -> { order("#{Tagging.table_name}.id") }, :as => :taggable, :after_remove => :delete_tag_if_necessary, :dependent => :destroy, :class_name => 'ActsAsTaggable::Tagging'
-      has_many :tags, :through => :taggings, :class_name => 'ActsAsTaggable::Tag', :after_add => :reset_scoped_associations
+      has_many :taggings, -> { order("#{Tagging.table_name}.id") }, :as => :taggable, :after_add => :reset_associations_after_taggings_change, :after_remove => :delete_tag_if_necessary, :dependent => :destroy, :class_name => 'ActsAsTaggable::Tagging'
+      has_many :tags, :through => :taggings, :class_name => 'ActsAsTaggable::Tag', :after_add => :reset_associations_after_tag_change
 
       extend ClassMethods
       include InstanceMethods
 
       self.acts_as_taggable_options[:types].each do |tag_type|
-        has_many :"#{tag_type}_taggings", -> { joins(:tag).order("#{Tagging.table_name}.id").where(Tag.table_name => {:tag_type => tag_type}) }, :as => :taggable, :after_remove => :delete_tag_if_necessary, :class_name => 'ActsAsTaggable::Tagging'
-        has_many :"#{tag_type}_tags", -> { where(:tag_type => tag_type) }, :through => :taggings, :source => :tag, :class_name => 'ActsAsTaggable::Tag', :after_add => :reset_associations
+        has_many :"#{tag_type}_taggings", -> { joins(:tag).order("#{Tagging.table_name}.id").where(Tag.table_name => {:tag_type => tag_type}) }, :as => :taggable, :after_add => :reset_associations_after_taggings_change, :after_remove => :delete_tag_if_necessary, :class_name => 'ActsAsTaggable::Tagging'
+        has_many :"#{tag_type}_tags", -> { where(:tag_type => tag_type) }, :through => :taggings, :source => :tag, :class_name => 'ActsAsTaggable::Tag', :after_add => :reset_associations_after_tag_change
 
         metaclass = class << self; self; end
         HelperMethods.scope_class_methods(metaclass, tag_type)
@@ -31,7 +31,7 @@ module ActsAsTaggable
       return none if tags.empty?
 
       table_alias = "alias_#{tags.hash.abs}"
-      scope = all.uniq.select "#{table_name}.*"
+      scope = all.distinct.select "#{table_name}.*"
       scope = scope.joins "JOIN #{Tagging.table_name} AS #{table_alias} ON #{table_alias}.taggable_id = #{table_name}.id"
       scope = scope.where "#{table_alias}.tag_id" => tags
 
@@ -42,7 +42,7 @@ module ActsAsTaggable
       tags = find_tags(tags)
       return none if tags.empty?
 
-      tags.inject(all.uniq) do |scope, tag|
+      tags.inject(all.distinct) do |scope, tag|
         scope = scope.joins "LEFT OUTER JOIN #{Tagging.table_name} AS alias_#{tag.id} ON alias_#{tag.id}.taggable_id = #{table_name}.id"
         scope = scope.where "alias_#{tag.id}.tag_id" => tag
       end
@@ -81,7 +81,7 @@ module ActsAsTaggable
       when Array
         input.flat_map {|tag| find_tags(tag)}.select(&:present?).uniq
       when ActiveRecord::Relation
-        input.uniq.to_a
+        input.distinct.to_a
       else
         []
       end
@@ -114,24 +114,27 @@ module ActsAsTaggable
     end
 
     def tag_names=(names)
-      send HelperMethods.scoped_association_assignment_name, names.select(&:present?).collect {|tag_name| self.class.create_tag(tag_name) }
+      tag_objects = names.select(&:present?).collect {|tag_name| self.class.create_tag(tag_name) }.uniq
+      send HelperMethods.scoped_association_assignment_name, tag_objects
     end
 
     private
 
     def delete_tag_if_necessary(tagging)
+      reset_associations_after_taggings_change(tagging)
       self.class.tags.where(:id => tagging.tag_id).destroy_all if acts_as_taggable_options[:remove_tag_if_empty] && tagging.tag.taggings.count == 0
     end
 
-    def reset_scoped_associations(record)
-      return unless record.tag_type
-      send("#{record.tag_type}_taggings").reset
-      send("#{record.tag_type}_tags").reset
-    end
-
-    def reset_associations(record)
+    def reset_associations_after_tag_change(tag)
       send(:taggings).reset
       send(:tags).reset
+      return unless tag.tag_type
+      send("#{tag.tag_type}_taggings").reset
+      send("#{tag.tag_type}_tags").reset
+    end
+
+    def reset_associations_after_taggings_change(tagging)
+      reset_associations_after_tag_change(tagging.tag)
     end
   end
 
