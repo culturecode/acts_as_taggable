@@ -78,6 +78,7 @@ module ActsAsTaggable
         HelperMethods.filter_tags_by_current_tag_scope([input])
       when String
         tags.where(:name => input.split(acts_as_taggable_options[:delimiter]).collect {|tag_name| tag_name.strip}).to_a
+        tags.where(:name => input.split(acts_as_taggable_options[:delimiter]).collect {|tag_name| sanitize_tag_name(tag_name) }).to_a
       when Array
         input.flat_map {|tag| find_tags(tag)}.select(&:present?).uniq
       when ActiveRecord::Relation
@@ -85,6 +86,12 @@ module ActsAsTaggable
       else
         []
       end
+    end
+
+    def sanitize_tag_name(tag_name)
+      sanitized_tag_name = tag_name.to_s.squish
+      sanitized_tag_name.downcase! if acts_as_taggable_options[:downcase]
+      sanitized_tag_name
     end
   end
 

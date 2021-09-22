@@ -24,9 +24,7 @@ module ActsAsTaggable
     private
 
     def sanitize_name
-      name = self.name.to_s.squish
-      name.downcase! if taggable_class.acts_as_taggable_options[:downcase]
-      self.name = name
+      self.name = taggable_class.sanitize_tag_name(name)
     end
   end
 end

@@ -7,19 +7,41 @@ describe 'acts_as_taggable' do
     ActsAsTaggable::Tag.destroy_all # Because we're using sqlite3 and it doesn't support transactional specs (afaik)
   end
 
-
   describe '::acts_as_taggable' do
     it "adds the tags association to the model" do
       expect(klass.reflect_on_association(:tags)).to be_present
     end
   end
 
-  describe '::create_tags' do
+  describe '::create_tag' do
     it 'accepts a string' do
       tag = klass.create_tag('red')
 
       expect(tag.name).to eq('red')
       expect(tag).to be_an_instance_of(ActsAsTaggable::Tag)
+    end
+
+    it 'creates lowercase tags by default' do
+      expect {
+        lower_tag = klass.create_tag('red')
+        upper_tag = klass.create_tag('RED')
+
+        expect(lower_tag.name).to eq('red')
+        expect(upper_tag.name).to eq('red')
+        expect(lower_tag).to eq(upper_tag)
+      }.to change { ActsAsTaggable::Tag.count }.by(1)
+    end
+
+    it 'creates case-senstive tags' do
+      insensitive_klass = new_dummy_class { acts_as_taggable :downcase => false }
+      expect {
+        lower_tag = insensitive_klass.create_tag('red')
+        upper_tag = insensitive_klass.create_tag('RED')
+
+        expect(lower_tag.name).to eq('red')
+        expect(upper_tag.name).to eq('RED')
+        expect(lower_tag).not_to eq(upper_tag)
+      }.to change { ActsAsTaggable::Tag.count }.by(2)
     end
   end
 
