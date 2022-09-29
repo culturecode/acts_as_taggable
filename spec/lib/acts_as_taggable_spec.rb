@@ -4,9 +4,8 @@ describe 'acts_as_taggable' do
   let(:klass) { new_dummy_class { acts_as_taggable } }
 
   before do
-    Tag.destroy_all # Because we're using sqlite3 and it doesn't support transactional specs (afaik)
+    ActsAsTaggable::Tag.destroy_all # Because we're using sqlite3 and it doesn't support transactional specs (afaik)
   end
-
 
   describe '::acts_as_taggable' do
     it "adds the tags association to the model" do
@@ -14,12 +13,35 @@ describe 'acts_as_taggable' do
     end
   end
 
-  describe '::create_tags' do
+  describe '::create_tag' do
     it 'accepts a string' do
       tag = klass.create_tag('red')
 
       expect(tag.name).to eq('red')
-      expect(tag).to be_an_instance_of(Tag)
+      expect(tag).to be_an_instance_of(ActsAsTaggable::Tag)
+    end
+
+    it 'creates lowercase tags by default' do
+      expect {
+        lower_tag = klass.create_tag('red')
+        upper_tag = klass.create_tag('RED')
+
+        expect(lower_tag.name).to eq('red')
+        expect(upper_tag.name).to eq('red')
+        expect(lower_tag).to eq(upper_tag)
+      }.to change { ActsAsTaggable::Tag.count }.by(1)
+    end
+
+    it 'creates case-senstive tags' do
+      insensitive_klass = new_dummy_class { acts_as_taggable :downcase => false }
+      expect {
+        lower_tag = insensitive_klass.create_tag('red')
+        upper_tag = insensitive_klass.create_tag('RED')
+
+        expect(lower_tag.name).to eq('red')
+        expect(upper_tag.name).to eq('RED')
+        expect(lower_tag).not_to eq(upper_tag)
+      }.to change { ActsAsTaggable::Tag.count }.by(2)
     end
   end
 
@@ -45,6 +67,14 @@ describe 'acts_as_taggable' do
 
     it 'accepts a comma delimited string of tags' do
       expect(klass.find_tags("#{red.name}, #{green.name}")).to contain_exactly(red, green)
+    end
+
+    it 'accepts an ActiveRecord::Relation of tags' do
+      expect(klass.find_tags(ActsAsTaggable::Tag.where(:name => red.name))).to contain_exactly(red)
+    end
+
+    it 'returns an empty array if a nil is passed' do
+      expect(klass.find_tags(nil)).to eq([])
     end
   end
 
@@ -88,7 +118,6 @@ describe 'acts_as_taggable' do
   describe '::applied_tags' do
     let(:record) { klass.create! }
     let(:red) { klass.create_tag('red') }
-    # let(:green) { klass.create_tag('green') }
 
     it 'returns only tags that have been applied to records' do
       record.tags << red
@@ -101,6 +130,49 @@ describe 'acts_as_taggable' do
 
       record.tags << red
       expect(klass.applied_tags).to contain_exactly(red)
+    end
+  end
+
+  describe '#tag_names=' do
+    let(:record) { klass.create! }
+    let(:red) { klass.create_tag('red') }
+
+    it 'accepts an array of strings and sets the tags tag match' do
+      record.tag_names = ['red', 'green']
+      expect(record.tags.collect(&:name)).to contain_exactly('red', 'green')
+    end
+
+    it 'ignores empty strings' do
+      record.tag_names = ['', 'green']
+      expect(record.tags.collect(&:name)).to contain_exactly('green')
+    end
+
+    it "doesn't add duplicate tags" do
+      record.tags << red
+      record.tag_names = ["red", "red"]
+      expect(record.tags.count).to eq(1)
+    end
+  end
+
+  describe '#tag_with' do
+    let(:record) { klass.create! }
+    let(:red) { klass.create_tag('red') }
+
+    it 'accepts multiple mixed arguments and sets the tags tag match' do
+      record.tag_with(red, 'green')
+      expect(record.tags.collect(&:name)).to contain_exactly('red', 'green')
+    end
+  end
+
+  describe '#tag_with' do
+    let(:record) { klass.create! }
+    let(:red) { klass.create_tag('red') }
+
+    it 'accepts multiple mixed arguments and unsets the given tags' do
+      record.tag_with(red, 'green', 'blue')
+      record.untag_with(red, 'green')
+
+      expect(record.tags.collect(&:name)).to contain_exactly('blue')
     end
   end
 end

@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Tagging do
+describe ActsAsTaggable::Tagging do
   let(:klass) { new_dummy_class { acts_as_taggable } }
 
   describe '#create!' do
