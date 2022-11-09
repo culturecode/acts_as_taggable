@@ -142,6 +142,21 @@ describe 'acts_as_taggable' do
       expect(record.tags.collect(&:name)).to contain_exactly('red', 'green')
     end
 
+    it 'creates with an array of strings and sets the tags tag match' do
+      record = klass.create!(:tag_names => ['red', 'green'])
+      expect(record.tags.collect(&:name)).to contain_exactly('red', 'green')
+    end
+
+    it 'updates with different tags' do
+      record.update!(:tag_names => ['blue', 'green'])
+      expect(record.tags.collect(&:name)).to contain_exactly('blue', 'green')
+    end
+
+    it 'updates with no tags' do
+      record.update!(:tag_names => [])
+      expect(record.tags.collect(&:name)).to be_empty
+    end
+
     it 'ignores empty strings' do
       record.tag_names = ['', 'green']
       expect(record.tags.collect(&:name)).to contain_exactly('green')
