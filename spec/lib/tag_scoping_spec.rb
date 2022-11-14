@@ -74,6 +74,14 @@ describe 'acts_as_taggable' do
       record.material_tags = [metal]
       expect(record.tags).to contain_exactly(red, metal)
     end
+
+    it 'resets the unscoped tags association when tags are removed' do
+      record.material_tags = [metal]
+      expect(record.tags).to contain_exactly(metal)
+
+      record.material_taggings = []
+      expect(record.tags).to be_empty
+    end
   end
 
   describe '#tag_type_taggings' do
@@ -91,7 +99,6 @@ describe 'acts_as_taggable' do
       expect(record.taggings.collect(&:tag)).to contain_exactly(red, metal, wood)
     end
   end
-
 
   describe '#tag_type_tags' do
     it "returns only tags where the tag's tag type matches" do
