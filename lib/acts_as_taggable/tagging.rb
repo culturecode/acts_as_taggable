@@ -11,7 +11,7 @@ module ActsAsTaggable
     private
 
     def taggable_type_matches
-      errors.add(:taggable_type, "can't be tagged with a tag from another class") if tag.taggable_type != taggable_type
+      errors.add(:taggable_type, "can't be tagged with a tag from another class") unless tag.taggable_type.constantize <= taggable_type.constantize
     end
   end
 end
