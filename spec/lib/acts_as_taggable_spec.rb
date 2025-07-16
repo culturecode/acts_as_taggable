@@ -133,6 +133,28 @@ describe 'acts_as_taggable' do
     end
   end
 
+  describe '::tags' do
+    let(:red) { klass.create_tag('red') }
+
+    it 'returns tags that have been created' do
+      expect(klass.tags).to contain_exactly(red)
+    end
+
+    it 'returns only tags from this class' do
+      other_klass = new_dummy_class { acts_as_taggable }
+      other_klass.create_tag('blue')
+
+      expect(klass.tags).to contain_exactly(red)
+    end
+
+    it "returns tags from this class' subclasses" do
+      subclass = eval("class #{klass}Subclass < #{klass}; end; #{klass}Subclass")
+      blue = subclass.create_tag('blue')
+
+      expect(klass.tags).to contain_exactly(blue)
+    end
+  end
+
   describe '#tag_names=' do
     let(:record) { klass.create! }
     let(:red) { klass.create_tag('red') }

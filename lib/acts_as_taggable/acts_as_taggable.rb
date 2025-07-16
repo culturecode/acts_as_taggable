@@ -58,7 +58,7 @@ module ActsAsTaggable
     end
 
     def tags
-      Tag.where(:taggable_type => name)
+      Tag.where(:taggable_type => [name] + descendants.map(&:name))
     end
 
     def tag_names
